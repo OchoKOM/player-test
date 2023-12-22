@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mon Lecteur Vidéo</title>
+    <style>
+        body{
+            background: #222;
+            display: flex;
+        }
+        ocho{
+            margin: auto;
+        }
+    </style>
+</head>
+<body>
+    <ocho size="1080" type="playlist" playlist="list">
+    </ocho>
+    <ocho-pl id="list">
+        <ocho-pi src="Pete & Bas - Stepped Into the Building.mp4" size="1080"></ocho-pi>
+        <ocho-pi src="Pete & Bas - Stepped Into the Building.mp4" size="1080"></ocho-pi>
+        <ocho-pi src="video.mp4" size="720">
+            <source src="video_360.mp4" type="video/mp4" size="360">
+            <track kind="subtitles" srclang="en" src="asset/Lil Nas X - Old Town Road (Official Movie) ft. Billy Ray Cyrus[English - en].vtt">
+            <track kind="subtitles" srclang="fr" src="asset/Lil Nas X - Old Town Road (Official Movie) ft. Billy Ray Cyrus [French].vtt">
+        </ocho-pi>
+        <ocho-pi src="video2.mp4" size="1080"></ocho-pi>
+    </ocho-pl>
+    <script src="video-player.js"></script>
+</body>
+</html>
