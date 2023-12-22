@@ -494,22 +494,35 @@ async function video_player() {
             if (i === current_index) {
               (i > 0) && prev_btn.classList.add('active');
               (i < (playlist_items.length - 1)) && next_btn.classList.add('active');
-              next_btn.addEventListener('click', () => {
+              next_btn.onclick = () => {
+                let caption_text = player.querySelector('.caption-text');
+                caption_text && (caption_text.innerHTML = '');
+                remove_active_class(subtitle_btn)
                 if (new_index !== current_index && new_index === current_index-1) {
                   new_index = current_index;
-                  reload_ocho_player(playlist_items[i+1])
+                  current_index+= 1;
+                  reload_ocho_player(playlist_items[current_index])
+                }else if (new_index === current_index) {
+                  current_index += 1;
+                  reload_ocho_player(playlist_items[current_index])
                 }
-                if (new_index === current_index) {
-                  reload_ocho_player(playlist_items[i+1])
+                settings_btn.classList.contains('active') && remove_settings();
+              }
+              prev_btn.onclick = () => {
+                let caption_text = player.querySelector('.caption-text');
+                caption_text && (caption_text.innerHTML = '');
+                remove_active_class(subtitle_btn)
+                if (new_index !== current_index && new_index === current_index+1) {
+                  new_index = current_index;
+                  current_index-= 1;
+                  reload_ocho_player(playlist_items[current_index])
+                }else if (new_index === current_index) {
+                  current_index -= 1;
+                  reload_ocho_player(playlist_items[current_index])
                 }
-              })
-              prev_btn.addEventListener('click', () => {
-                new_index = current_index
-                current_index -= 1;
-                reload_ocho_player(playlist_items[current_index])
-              })
+                settings_btn.classList.contains('active') && remove_settings();
+              }
             }
-            const element = playlist_items[i];
           }
         }
       }
@@ -518,12 +531,9 @@ async function video_player() {
       if (typeof player === 'undefined') {
         return;
       }
-      video_container.querySelector('.light').remove()
+      (video_container.querySelector('.light')) && video_container.querySelector('.light').remove();
       video_container.classList.add('player');
       video.classList.add('main-video');
-      let player_size = player.getAttribute('size') ? player.getAttribute('size') : 0;
-      video.src = player.getAttribute('src') ? player.getAttribute('src') : '';
-      video.setAttribute('size', player_size);
       let sources = player.querySelectorAll('source');
       let tracks = player.querySelectorAll('track');
       video.innerHTML = '';
@@ -533,6 +543,9 @@ async function video_player() {
       tracks.forEach(track => {
         video.appendChild(track)
       });
+      let player_size = player.getAttribute('size') ? player.getAttribute('size') : 0;
+      video.src = player.getAttribute('src') ? player.getAttribute('src') : '';
+      video.setAttribute('size', player_size);
       next_or_prev();
     }
 
@@ -593,11 +606,19 @@ async function video_player() {
       total_time_el.textContent = format_duration(video.duration);
     }
     video.addEventListener("timeupdate", ambiant_light)
-    video.addEventListener("timeupdate", () => {
+    video.addEventListener("timeupdate", async () => {
       current_time_el.textContent = format_duration(video.currentTime);
       total_time_el.textContent = format_duration(video.duration);
       let progress_position = (video.currentTime / video.duration) || 0
       timeline.style.setProperty('--progress-position', progress_position);
+      if (current_index !== new_index) {
+        await new Promise((resolve, reject) => {
+          preview_thumb_el.style.setProperty('--thumbnail-bg', '');
+          preview_thumbnails = generate_thumbnails(video.src);
+          new_index = current_index;
+          resolve();
+        })
+      }
     })
     setInterval(() => {
       draw_progress(loaded_progress, video.buffered, video.duration);
@@ -619,14 +640,6 @@ async function video_player() {
         timeline.style.setProperty('--preview-position', preview_position);
       }
       timeline.style.setProperty('--preview-hover-position', preview_position);
-      if (current_index !== new_index) {
-        await new Promise((resolve, reject) => {
-          preview_thumb_el.style.setProperty('--thumbnail-bg', '');
-          preview_thumbnails = generate_thumbnails(video.src);
-          new_index = current_index;
-          resolve();
-        })
-      }
       preview_thumbnails.then(async thumbnails => {
         thumbnails.forEach(async thumbnail => {
           if (await thumbnail.data) {
@@ -810,7 +823,7 @@ async function video_player() {
           remove_active_classes(menus);
         })
       });
-
+      caption_void()
       quality_void()
       playback_speed_void()
     }
@@ -859,7 +872,7 @@ async function video_player() {
          `;
           const source_html = `<source src="${data.source}" size="${data.data_quality}">`;
 
-          if (data.tagName === 'video') { video.innerHTML += source_html; }
+          if (data.tagName === 'video' && !video.innerHTML.includes(source_html)) { video.innerHTML += source_html; }
           quality_ul.innerHTML += size_li;
           quality_array.push(data.data_quality);
         }
@@ -894,37 +907,36 @@ async function video_player() {
       })
     }
     // sous-titres
-    let tracks = player.querySelectorAll('track');
-    let caption_text = player.querySelector('.caption-text');
-
-    caption_void()
-    if (tracks.length > 1) {
-      const caption_active = sessionStorage.getItem('caption')
-      if (caption_active) {
-        let lang = sessionStorage.getItem('lang');
-        select_captions(lang);
-      }
-      subtitle_btn.addEventListener('click', () => {
-        let lang = sessionStorage.getItem('lang') ? sessionStorage.getItem('lang') :
-          player.querySelectorAll('[data-track]')[1].getAttribute('data-track');
-        (!subtitle_btn.classList.contains('active')) ? select_captions(lang) :
-          select_captions('Off');
-        settings_btn.classList.contains('active') && remove_settings();
-      })
-    }
-    let text_tracks = video.textTracks;
-    for (let i = 0; i < text_tracks.length; i++) {
-      const track = text_tracks[i];
-      track.addEventListener('cuechange', () => {
-        if (track.mode === 'showing') {
-          let activeCue = track.activeCues[0];
-          caption_text.innerHTML = Boolean(activeCue) ?
-            `<mark>${activeCue.text}</mark>` :
-            '';
-        }
-      })
-    }
+    caption_void();
     function caption_void() {
+      let tracks = player.querySelectorAll('track');
+      let caption_text = player.querySelector('.caption-text');
+      if (tracks.length > 1) {
+        const caption_active = sessionStorage.getItem('caption')
+        if (caption_active) {
+          let lang = sessionStorage.getItem('lang');
+          select_captions(lang);
+        }
+        subtitle_btn.addEventListener('click', () => {
+          let lang = sessionStorage.getItem('lang') ? sessionStorage.getItem('lang') :
+            player.querySelectorAll('[data-track]')[1].getAttribute('data-track');
+          (!subtitle_btn.classList.contains('active')) ? select_captions(lang) :
+            select_captions('Off');
+          settings_btn.classList.contains('active') && remove_settings();
+        })
+      }
+      let text_tracks = video.textTracks;
+      for (let i = 0; i < text_tracks.length; i++) {
+        const track = text_tracks[i];
+        track.addEventListener('cuechange', () => {
+          if (track.mode === 'showing') {
+            let activeCue = track.activeCues[0];
+            caption_text.innerHTML = Boolean(activeCue) ?
+              `<mark>${activeCue.text}</mark>` :
+              '';
+          }
+        })
+      }
       let track_li = `
           <li data-track="Off">
               <div class="check active"></div>
@@ -976,7 +988,10 @@ async function video_player() {
     }
 
     function select_captions(lang) {
-      let li = player.querySelector(`[data-track=${lang}]`)
+      let li = player.querySelector(`[data-track=${lang}]`);
+      if (!li) {
+        return;
+      }
       const all_checks = li.parentNode.querySelectorAll('.check');
       remove_active_classes(all_checks);
       li.querySelector('.check').classList.add('active');
@@ -984,6 +999,7 @@ async function video_player() {
     }
 
     function change_caption(li) {
+      let caption_text = player.querySelector('.caption-text');
       let label = li.getAttribute('data-track');
       let text_tracks = video.textTracks;
       for (let i = 0; i < text_tracks.length; i++) {
