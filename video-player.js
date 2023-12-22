@@ -479,7 +479,7 @@ async function video_player() {
     video.addEventListener('pause', pause_video);
 
     // ! Next/prev
-    next_or_prev()
+    next_or_prev();
     function next_or_prev() {
       if (video_container.getAttribute("type").toLocaleLowerCase() === "playlist") {
         let playlist_id = video_container.getAttribute('playlist');
@@ -494,7 +494,14 @@ async function video_player() {
             if (i === current_index) {
               (i > 0) && prev_btn.classList.add('active');
               (i < (playlist_items.length - 1)) && next_btn.classList.add('active');
-              next_btn.onclick = () => {
+              video.onended = ()=>{
+                if (auto_play.classList.contains('active') && !video.loop) {
+                  next();
+                }
+              }
+              prev_btn.onclick = ()=>{prev()};
+              next_btn.onclick = ()=>{next()};
+              function next() {
                 let caption_text = player.querySelector('.caption-text');
                 caption_text && (caption_text.innerHTML = '');
                 remove_active_class(subtitle_btn)
@@ -508,7 +515,7 @@ async function video_player() {
                 }
                 settings_btn.classList.contains('active') && remove_settings();
               }
-              prev_btn.onclick = () => {
+              function prev() {
                 let caption_text = player.querySelector('.caption-text');
                 caption_text && (caption_text.innerHTML = '');
                 remove_active_class(subtitle_btn)
@@ -521,6 +528,7 @@ async function video_player() {
                   reload_ocho_player(playlist_items[current_index])
                 }
                 settings_btn.classList.contains('active') && remove_settings();
+                
               }
             }
           }
