@@ -51,7 +51,7 @@ async function video_player() {
             <span class="total-time">-</span>
           </div>
           <div class="auto-play desktop-item" title="Lecture automatique"></div>
-          <button class="caption-btn desktop-item">
+          <button class="caption-btn desktop-item" title="Sous-titres">
             <svg fill="currentColor" height="24">
               <use xlink:href="#subtitle-icon"></use>
             </svg>
@@ -528,7 +528,6 @@ async function video_player() {
                   reload_ocho_player(playlist_items[current_index])
                 }
                 settings_btn.classList.contains('active') && remove_settings();
-                
               }
             }
           }
