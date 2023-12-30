@@ -1047,6 +1047,10 @@ async function video_player() {
     }
 
   });
+  function show_aside() {
+    
+  }
+  show_aside();
 }
 function generate_thumbnails(src) {
   return new Promise((resolve, reject) => {
