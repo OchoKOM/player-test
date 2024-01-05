@@ -72,7 +72,7 @@ ocho.fullscreen video {
     background: radial-gradient(var(--hx), #000);
 }
 
-.video-controls-container {
+ocho .video-controls-container {
     position: absolute;
     bottom: 0;
     left: 0;
@@ -81,24 +81,29 @@ ocho.fullscreen video {
     opacity: 0;
     transition: opacity 150ms ease-in-out;
     border-radius: inherit;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    pointer-events: none;
 }
 
-.video-controls-container::before {
+ocho .video-controls-container::before {
     content: "";
     position: absolute;
     left: 0;
     bottom: 0;
-    background: linear-gradient(to top, rgba(0, 0, 0, 0.75), transparent);
+    background: linear-gradient(to top, #000000bf, transparent, #000000bf);
+    height: 100%;
     width: 100%;
     aspect-ratio: 6/1;
-    z-index: -1;
+    z-index: -2;
     pointer-events: none;
     border-radius: inherit;
 }
-
-ocho:hover .video-controls-container,
-ocho:focus-within .video-controls-container,
+ocho.control .video-controls-container,
 ocho.paused .video-controls-container {
+    pointer-events: all;
     opacity: 1;
 }
 
@@ -147,14 +152,27 @@ ocho.paused .caption-text {
 .caption-btn.active::before {
     width: 80%;
 }
-
+ocho .overlay{
+    height: 100%;
+    width: 100%;
+    position: absolute;
+    z-index: 2;
+}
+.video-controls-container .overlay{
+    z-index: -1;
+}
 .video-controls-container .controls {
     display: flex;
     gap: 0.5rem;
     padding: 0.25rem;
     align-items: center;
-    overflow: hidden;
     width: 100%;
+}
+.video-controls-container .controls.center {
+    justify-content: space-around;
+}
+.video-controls-container .controls.bottom {
+    flex-direction: column;
 }
 
 .video-controls-container .controls button {
@@ -171,25 +189,35 @@ ocho.paused .caption-text {
     justify-content: center;
     align-items: center;
     cursor: pointer;
-    opacity: 0.85;
+    opacity: 0.9;
     transition: opacity 150ms ease-in-out;
+}
+.video-controls-container .controls button.play-pause-btn {
+    height: 50px;
+    width: 50px;
 }
 
 .video-controls-container .controls button:hover {
     opacity: 1;
 }
 .video-controls-container .controls .next-btn,
-.video-controls-container .controls .prev-btn{
-    display: none;
+.video-controls-container .controls .prev-btn,
+.video-controls-container .controls .next-btn:not(.active):hover,
+.video-controls-container .controls .prev-btn:not(.active):hover{
+    opacity: 0.5;
+    transition: opacity 150ms ease-in-out;
 }
 .video-controls-container .controls .next-btn.active,
 .video-controls-container .controls .prev-btn.active{
-    display: flex;
+    opacity: 1;
 }
 
 .volume-container {
     display: flex;
     align-items: center;
+}
+.controls.top .volume-container {
+    flex-grow: 1;
 }
 
 .volume-container .volume-slider {
@@ -230,6 +258,7 @@ ocho.paused .caption-text {
     align-items: center;
     gap: 0.25rem;
     flex-grow: 1;
+    -webkit-user-select: none;
     user-select: none;
 }
 
@@ -249,6 +278,7 @@ ocho.paused .caption-text {
     position: relative;
     transition: 50ms ease-in-out;
     border-radius: 2px;
+    -webkit-user-select: none;
     user-select: none;
 }
 
@@ -304,11 +334,13 @@ ocho.paused .caption-text {
     z-index: 2;
 }
 
-.timeline-container:hover .thumb-indicator {
+.timeline-container:hover .thumb-indicator,
+.timeline-container.hover .thumb-indicator{
     --scale: 1;
 }
 
-.timeline-container:hover .timeline {
+.timeline-container:hover .timeline,
+.timeline-container.hover .timeline  {
     height: 100%;
 }
 
@@ -322,12 +354,14 @@ ocho.paused .caption-text {
     border-radius: 3px;
     right: calc(100% - (var(--preview-position) * 100%));
     transform: translate(calc(50% + var(--overflow-pos)));
+    -webkit-user-select: none;
     user-select: none;
     pointer-events: none;
     opacity: 0;
 }
 
-.timeline:hover .preview-thumb {
+.timeline:hover .preview-thumb,
+.timeline-container.hover .preview-thumb{
     opacity: 1;
 }
 
@@ -403,8 +437,8 @@ ocho.paused .caption-text {
 }
 
 .auto-play {
-    width: 27px;
-    height: 12px;
+    width: 35px;
+    height: 15px;
     border-radius: 20px;
     position: relative;
     background: #808080cc;
@@ -419,10 +453,10 @@ ocho.paused .caption-text {
     right: 15px;
     top: 50%;
     transform: translateY(-50%);
-    width: 15px;
-    height: 15px;
+    width: 19px;
+    height: 19px;
     aspect-ratio: 1;
-    font-size: 10px;
+    font-size: 12px;
     color: #fff;
     background: #606060;
     display: flex;
@@ -430,14 +464,14 @@ ocho.paused .caption-text {
     align-items: center;
     border-radius: 50%;
     font-family: "Ocho";
-    padding: 1px;
+    padding-inline: 1px;
     cursor: pointer;
-    transition: right 150ms ease-in-out;
+    transition: right 150ms ease-in-out,left 150ms ease-in-out;
 }
 
 .auto-play.active::before {
     content: "\f04b";
-    left: initial;
+    left: 15px;
     right: -3px;
     color: #000;
     background: #fff;
@@ -462,9 +496,11 @@ ocho.paused .caption-text {
     z-index: 20;
     -webkit-user-select: none;
     user-select: none;
+    pointer-events: none;
 }
 
 .settings-menu.active {
+    pointer-events: all;
     opacity: 1;
     visibility: visible;
 }
@@ -681,12 +717,19 @@ ocho.paused .caption-text {
         width: 100%;
         border-radius: 0;
     }
-
-    .video-controls-container .controls .desktop-item {
-        display: none;
+    .settings-menu {
+        position: fixed;
+        right: 15px;
+        left: 15px;
+        bottom: 15px;
     }
-
-    .video-controls-container .settings-menu .desktop-item {
-        display: none;
+    .settings-menu .wrapper {
+        width: 100%;
+    }
+    .settings-menu ul {
+        width: 100%;
+    }
+    .settings-menu:has(.drop.active) .main-section {
+        margin-left: calc(0px - calc(100% + 20px));
     }
 }
